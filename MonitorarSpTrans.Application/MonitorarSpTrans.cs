@@ -97,10 +97,9 @@ namespace MonitorarSpTrans.Application
 
                     // Obtendo Serviço da Fabrica
                     using (IWebService webService = serviceProvider.GetService<IWebFactoryService>().ServiceSelector("lerweb"))
-                    {
-                        Console.WriteLine(settingsWebInfo[qualServico]);
-                        string uriMontada = serviceProvider.GetService<IWebMontaUri>().GetUriMontadaServiceAsync(qualServico);
-                        await webService.GetServiceAsync(uriMontada, httpcliente);
+                    {                        
+                        string uriServico = settingsWebInfo[qualServico];
+                        await webService.GetServiceAsync(uriServico, httpcliente);
                     }
 
                     Log.Information($"Finalizado Consulta {qualServico}-{qualData}");
@@ -176,8 +175,7 @@ namespace MonitorarSpTrans.Application
             });
             serviceCollection.AddSingleton<IWebAuthorization, WebAuthorizationSpTrans>();
             serviceCollection.AddSingleton<IWebFactoryService, WebFactoryService>();
-            serviceCollection.AddSingleton<IWebMontaUri, WebMontaUri>();
-
+            
             // Add app
             //serviceCollection.AddTransient<App>();
         }
