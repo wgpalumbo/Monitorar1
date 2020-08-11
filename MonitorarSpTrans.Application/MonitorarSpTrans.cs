@@ -82,21 +82,17 @@ namespace MonitorarSpTrans.Application
                     httpcliente.DefaultRequestHeaders.Accept.Add(item: new MediaTypeWithQualityHeaderValue("application/json"));
                     httpcliente.BaseAddress = new Uri(configuration.GetConnectionString("urlBase").ToString());
 
+                    // Obtendo paramentros de Autorização
                     string tmpUrlUri = configuration.GetConnectionString("urlAutorizacao").ToString();
                     string tmpToken = configuration.GetConnectionString("tokenkey").ToString();
                     var tokenLiberacao = new Tuple<string, string>(tmpUrlUri, tmpToken);
-                    
-                    string token = await webAuthorization.GetTokenAsync(tokenLiberacao, httpcliente).ConfigureAwait(false);
-                                       
-                    if (!String.IsNullOrEmpty(token))
+
+                    if (!(await webAuthorization.GetAutorizacaoTokenAsync(tokenLiberacao, httpcliente).ConfigureAwait(false)))
                     {
-                        if (!token.ToLower().Equals("true"))
-                        {
-                            Console.WriteLine($"{args[1]}-{args[0]} => Serviço Não Autorizado.");
-                            return;
-                        }
+                        Console.WriteLine($"{args[1]}-{args[0]} => Serviço Não Autorizado.");
+                        return;
                     }
-                    Console.WriteLine(token);
+
 
                     // if (webAuthorization.ObterAutorizacao())
                     // {

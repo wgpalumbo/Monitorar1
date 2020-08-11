@@ -6,6 +6,6 @@ namespace MonitorarSpTrans.Application.IService
 {
     public interface IWebAuthorization : IDisposable
     {
-        Task<string> GetTokenAsync(Tuple<string, string> tokenLiberacao, HttpClient httpClient);
+        Task<bool> GetAutorizacaoTokenAsync(Tuple<string, string> tokenLiberacao, HttpClient httpClient);
     }
 }

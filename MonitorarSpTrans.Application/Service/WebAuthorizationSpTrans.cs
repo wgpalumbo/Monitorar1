@@ -20,7 +20,7 @@ namespace MonitorarSpTrans.Application.Service
         {
         }
 
-        public async Task<string> GetTokenAsync(Tuple<string, string> tokenLiberacao, HttpClient httpClient)
+        public async Task<bool> GetAutorizacaoTokenAsync(Tuple<string, string> tokenLiberacao, HttpClient httpClient)
         {
             Task<string> retorno = Task.FromResult(string.Empty);
             try
@@ -42,12 +42,12 @@ namespace MonitorarSpTrans.Application.Service
                 // string content2 = await response2.Content.ReadAsStringAsync();
                 // Console.WriteLine(content2.ToString());
 
-                return result.ToString();
+                return result.ToString().ToLower().Equals("true");
 
             }
             catch (Exception e) { Console.WriteLine(e.Message); }
 
-            return await retorno;
+            return false;
         }
     }
 }
