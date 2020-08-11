@@ -1,14 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MonitorarSpTrans.Application.IService;
 using MonitorarSpTrans.Application.Service;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace MonitorarSpTrans.Application
@@ -67,20 +68,21 @@ namespace MonitorarSpTrans.Application
 
             try
             {
-                string[] comandosArray = configuration.GetSection("sptrans:servicos").Get<string[]>();
-                if (!comandosArray.Any(x => x == qualServico))
+                // Verificando se as palavras de entrada via teclado estao certas                
+                Dictionary<string, string> settingsWebInfo = configuration.GetSection("sptrans:servicos").Get<Dictionary<string, string>>();
+                string[] servicosArray = settingsWebInfo.Keys.ToArray();
+                
+                if (!servicosArray.Any(x => x == qualServico))
                 {
                     Console.WriteLine($"{qualServico}? => Por Favor, Informe uma operação valida.");
                     return;
                 }
 
-
+                // Iniciando um namespace IWebAuthorization
                 using (IWebAuthorization webAuthorization = serviceProvider.GetService<IWebAuthorization>())
                 {
                     // Create Cliente Http From Factory
-                    var httpcliente = httpClientFactory.CreateClient("");
-                    httpcliente.DefaultRequestHeaders.Accept.Add(item: new MediaTypeWithQualityHeaderValue("application/json"));
-                    httpcliente.BaseAddress = new Uri(configuration.GetConnectionString("urlBase").ToString());
+                    var httpcliente = httpClientFactory.CreateClient("sptrans");
 
                     // Obtendo paramentros de Autorização
                     string tmpUrlUri = configuration.GetConnectionString("urlAutorizacao").ToString();
@@ -93,32 +95,16 @@ namespace MonitorarSpTrans.Application
                         return;
                     }
 
+                    // Obtendo Serviço da Fabrica
+                    using (IWebService webService = serviceProvider.GetService<IWebFactoryService>().ServiceSelector("lerweb"))
+                    {
+                        Console.WriteLine(settingsWebInfo[qualServico]);
+                        string uriMontada = serviceProvider.GetService<IWebMontaUri>().GetUriMontadaServiceAsync(qualServico);
+                        await webService.GetServiceAsync(uriMontada, httpcliente);
+                    }
 
-                    // if (webAuthorization.ObterAutorizacao())
-                    // {
-                    //     string resposta = webAuthorization.GetResposta();
-                    //     Console.WriteLine(resposta);
-                    //     using (IWebService webService = new WebFactoryService(httpcliente).ServiceSelector(qualServico))
-                    //     {
-                    //         webService.GetServiceAsync(resposta, qualData, qualConsulta);
-                    //     }
-
-                    // }
-                    // else
-                    // {
-                    //     Console.WriteLine($"{args[0]} => Serviço Não Autorizado.");
-                    //     return;
-                    // }
-
+                    Log.Information($"Finalizado Consulta {qualServico}-{qualData}");
                 }
-
-
-
-                // Print connection string to demonstrate configuration object is populated
-                Console.WriteLine(configuration.GetConnectionString("DbConnection"));
-
-                var dadosConfig = configuration.GetSection("sptrans").GetValue<string>("urlBase");
-                Console.WriteLine(dadosConfig);
 
             }
             catch (Exception ex)
@@ -128,7 +114,9 @@ namespace MonitorarSpTrans.Application
             }
             finally
             {
+                Log.Information("Encerrando App");
                 Log.CloseAndFlush();
+
             }
 
 
@@ -148,6 +136,11 @@ namespace MonitorarSpTrans.Application
             //     Log.CloseAndFlush();
             // }
 
+            // Verificando Uri-Base
+            //Log.Information("Uri-Base:" + configuration.GetSection("sptrans").GetValue<string>("urlBase"));
+
+
+
         }
 
 
@@ -157,8 +150,7 @@ namespace MonitorarSpTrans.Application
             // Add logging
             serviceCollection.AddSingleton(LoggerFactory.Create(builder =>
             {
-                builder
-                    .AddSerilog(dispose: true);
+                builder.AddSerilog(dispose: true);
             }));
 
             serviceCollection.AddLogging();
@@ -171,14 +163,25 @@ namespace MonitorarSpTrans.Application
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
+
             // Add access to generic IConfigurationRoot
             serviceCollection.AddSingleton<IConfigurationRoot>(configuration);
 
             serviceCollection.AddHttpClient("");
+            serviceCollection.AddHttpClient("sptrans", c =>
+            {
+                c.BaseAddress = new Uri(configuration.GetConnectionString("urlBase").ToString());
+                c.DefaultRequestHeaders.Add("Accept", "application/json");
+                //c.DefaultRequestHeaders.Add("User-Agent", "HttpClientFactory-Sample");
+            });
             serviceCollection.AddSingleton<IWebAuthorization, WebAuthorizationSpTrans>();
+            serviceCollection.AddSingleton<IWebFactoryService, WebFactoryService>();
+            serviceCollection.AddSingleton<IWebMontaUri, WebMontaUri>();
 
             // Add app
             //serviceCollection.AddTransient<App>();
         }
+
+
     }
 }
