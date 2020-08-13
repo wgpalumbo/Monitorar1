@@ -41,6 +41,7 @@ namespace MonitorarSpTrans.Application
             }
         }
 
+        //O que acha de tentar quebrar mais esse metodo, uma forma interessante de validar a estrutura é colocar testes unitarios ;) 
         static async Task MainAsync(string[] args)
         {
 
@@ -76,7 +77,8 @@ namespace MonitorarSpTrans.Application
                 // Verificando se as palavras de entrada via teclado estao certas                
                 Dictionary<string, string> settingsWebInfo = configuration.GetSection("sptrans:servicos").Get<Dictionary<string, string>>();
                 string[] servicosArray = settingsWebInfo.Keys.ToArray();
-
+                
+                //Aqui voce pode utilizar o metodo do dicionario ContainsKey, mais rapido 
                 if (!servicosArray.Any(x => x == qualServico))
                 {
                     Log.Error($"{qualServico}? => Por Favor, Informe uma operação valida.");
@@ -181,6 +183,7 @@ namespace MonitorarSpTrans.Application
             serviceCollection.AddSingleton<IConfigurationRoot>(configuration);
 
             serviceCollection.AddHttpClient("");
+            //ficou muito interessante essa factory
             serviceCollection.AddHttpClient("sptrans", c =>
             {
                 c.BaseAddress = new Uri(configuration.GetConnectionString("urlBase").ToString());

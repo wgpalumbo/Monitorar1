@@ -9,7 +9,8 @@ namespace MonitorarSpTrans.Application.Service
         public WebFactoryService()
         {
         }
-
+        
+        // teria algum motivo para manter o dispose nessa classe ?  
         public void Dispose()
         {
             Dispose(true);
@@ -19,6 +20,8 @@ namespace MonitorarSpTrans.Application.Service
         {
         }
 
+        // Está interessante a aplicação da factory aqui, porém imagine que a WebServiceSpTransEmpresas dependa de dois repositorios, como voce faria ?
+        
         public IWebService ServiceSelector(string qual)
         {
             switch (qual)
