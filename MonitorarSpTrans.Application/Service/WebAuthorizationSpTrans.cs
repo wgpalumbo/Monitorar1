@@ -20,7 +20,7 @@ namespace MonitorarSpTrans.Application.Service
         {
         }
 
-        public async Task<bool> GetAutorizacaoTokenAsync(Tuple<string, string> tokenLiberacao, HttpClient httpClient)
+        public async Task<object> GetAutorizacaoTokenAsync(Tuple<string, string> tokenLiberacao, HttpClient httpClient)
         {
             Task<string> retorno = Task.FromResult(string.Empty);
             try

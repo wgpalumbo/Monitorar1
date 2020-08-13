@@ -44,15 +44,18 @@ namespace MonitorarSpTrans.Application
 
             if (args.Length != 2)
             {
-                Console.WriteLine("Por Favor, Indique o tipo de Serviço Externo e a Data desejada.");
-                Console.WriteLine($"Acrescentar: dd/mm/yyyy serviço");
+                Log.Error("Por Favor, Indique a Data desejada e o o tipo de Serviço.");
+                Log.Error($"Acrescentar: dd/mm/yyyy serviço");
+                //Console.WriteLine("Por Favor, Indique o tipo de Serviço Externo e a Data desejada.");
+                //Console.WriteLine($"Acrescentar: dd/mm/yyyy serviço");
                 return;
             }
 
             DateTime tempDate;
             if (!DateTime.TryParse(args[0], out tempDate))
             {
-                Console.WriteLine($"{args[0]} => Por Favor, Informe a data corretamente.");
+                Log.Error($"{args[0]} => Por Favor, Informe a data corretamente.");
+                //Console.WriteLine($"{args[0]} => Por Favor, Informe a data corretamente.");
                 return;
             }
             string qualData = tempDate.ToString("dd/MM/yyyy");
@@ -71,10 +74,11 @@ namespace MonitorarSpTrans.Application
                 // Verificando se as palavras de entrada via teclado estao certas                
                 Dictionary<string, string> settingsWebInfo = configuration.GetSection("sptrans:servicos").Get<Dictionary<string, string>>();
                 string[] servicosArray = settingsWebInfo.Keys.ToArray();
-                
+
                 if (!servicosArray.Any(x => x == qualServico))
                 {
-                    Console.WriteLine($"{qualServico}? => Por Favor, Informe uma operação valida.");
+                    Log.Error($"{qualServico}? => Por Favor, Informe uma operação valida.");
+                    //Console.WriteLine($"{qualServico}? => Por Favor, Informe uma operação valida.");
                     return;
                 }
 
@@ -89,15 +93,16 @@ namespace MonitorarSpTrans.Application
                     string tmpToken = configuration.GetConnectionString("tokenkey").ToString();
                     var tokenLiberacao = new Tuple<string, string>(tmpUrlUri, tmpToken);
 
-                    if (!(await webAuthorization.GetAutorizacaoTokenAsync(tokenLiberacao, httpcliente).ConfigureAwait(false)))
+                    if (!Convert.ToBoolean(await webAuthorization.GetAutorizacaoTokenAsync(tokenLiberacao, httpcliente).ConfigureAwait(false)))
                     {
-                        Console.WriteLine($"{args[1]}-{args[0]} => Serviço Não Autorizado.");
+                        Log.Error($"{args[1]}-{args[0]} => Serviço Não Autorizado.");
+                        //Console.WriteLine($"{args[1]}-{args[0]} => Serviço Não Autorizado.");
                         return;
                     }
 
                     // Obtendo Serviço da Fabrica
                     using (IWebService webService = serviceProvider.GetService<IWebFactoryService>().ServiceSelector("lerweb"))
-                    {                        
+                    {
                         string uriServico = settingsWebInfo[qualServico];
                         await webService.GetServiceAsync(uriServico, httpcliente);
                     }
@@ -175,7 +180,7 @@ namespace MonitorarSpTrans.Application
             });
             serviceCollection.AddSingleton<IWebAuthorization, WebAuthorizationSpTrans>();
             serviceCollection.AddSingleton<IWebFactoryService, WebFactoryService>();
-            
+
             // Add app
             //serviceCollection.AddTransient<App>();
         }
