@@ -41,6 +41,7 @@ namespace MonitorarSpTrans.Application
             }
         }
 
+        //O que acha de tentar quebrar mais esse metodo, uma forma interessante de validar a estrutura é colocar testes unitarios ;) 
         static async Task MainAsync(string[] args)
         {
 
@@ -181,6 +182,7 @@ namespace MonitorarSpTrans.Application
             serviceCollection.AddSingleton<IConfigurationRoot>(configuration);
 
             serviceCollection.AddHttpClient("");
+            //ficou muito interessante essa factory
             serviceCollection.AddHttpClient("sptrans", c =>
             {
                 c.BaseAddress = new Uri(configuration.GetConnectionString("urlBase").ToString());
