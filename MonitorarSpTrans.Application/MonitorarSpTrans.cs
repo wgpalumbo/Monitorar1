@@ -77,7 +77,8 @@ namespace MonitorarSpTrans.Application
                 // Verificando se as palavras de entrada via teclado estao certas                
                 Dictionary<string, string> settingsWebInfo = configuration.GetSection("sptrans:servicos").Get<Dictionary<string, string>>();
                 string[] servicosArray = settingsWebInfo.Keys.ToArray();
-
+                
+                //Aqui voce pode utilizar o metodo do dicionario ContainsKey, mais rapido 
                 if (!servicosArray.Any(x => x == qualServico))
                 {
                     Log.Error($"{qualServico}? => Por Favor, Informe uma operação valida.");
