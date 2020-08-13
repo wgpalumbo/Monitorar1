@@ -22,19 +22,19 @@ namespace MonitorarSpTrans.Application.Service
         }
 
         public async Task<string> GetServiceAsync(string urlPost, HttpClient httpcliente)
-        {
-            Task<string> retorno = Task.FromResult(string.Empty);
+        {            
             try
             {
                 HttpResponseMessage response2 = await httpcliente.GetAsync(urlPost).ConfigureAwait(false);
                 string content2 = await response2.Content.ReadAsStringAsync();
                 //Console.WriteLine(content2.ToString());
-                Log.Information($"Result-Consulta={content2.ToString()}");
+                //Log.Information($"Result-Consulta={content2.ToString()}");
+                return content2;
 
             }
             catch (Exception e) { Console.WriteLine(e.Message); }
 
-            return await retorno;
+            return "";
         }
     }
 }

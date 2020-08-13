@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MonitorarSpTrans.Application.IRepository;
 using MonitorarSpTrans.Application.IService;
+using MonitorarSpTrans.Application.Repository;
 using MonitorarSpTrans.Application.Service;
 using Newtonsoft.Json;
 using Serilog;
@@ -104,7 +106,14 @@ namespace MonitorarSpTrans.Application
                     using (IWebService webService = serviceProvider.GetService<IWebFactoryService>().ServiceSelector("lerweb"))
                     {
                         string uriServico = settingsWebInfo[qualServico];
-                        await webService.GetServiceAsync(uriServico, httpcliente);
+                        string resultado = await webService.GetServiceAsync(uriServico, httpcliente);
+                        //Armazenando
+                        using (IRepoService repoService = serviceProvider.GetService<IRepoService>())
+                        {
+                            repoService.Incluir(resultado.ToString(), qualServico);
+
+                        }
+
                     }
 
                     Log.Information($"Finalizado Consulta {qualServico}-{qualData}");
@@ -180,6 +189,8 @@ namespace MonitorarSpTrans.Application
             });
             serviceCollection.AddSingleton<IWebAuthorization, WebAuthorizationSpTrans>();
             serviceCollection.AddSingleton<IWebFactoryService, WebFactoryService>();
+            serviceCollection.AddSingleton<IRepoService, RepoService>();
+
 
             // Add app
             //serviceCollection.AddTransient<App>();
