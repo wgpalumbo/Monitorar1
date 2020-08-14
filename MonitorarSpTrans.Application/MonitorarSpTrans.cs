@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -103,14 +104,32 @@ namespace MonitorarSpTrans.Application
                     }
 
                     // Obtendo Serviço da Fabrica
-                    using (IWebService webService = serviceProvider.GetService<IWebFactoryService>().ServiceSelector("lerweb"))
+                    using (IWebService webService = (IWebService)serviceProvider.GetService<IWebFactoryService>().ServiceSelector("lerweb"))
                     {
                         string uriServico = settingsWebInfo[qualServico];
                         string resultado = await webService.GetServiceAsync(uriServico, httpcliente);
-                        //Armazenando
-                        using (IRepoService repoService = serviceProvider.GetService<IRepoService>())
+                        string stripdate = new string(qualData.Where(c => char.IsDigit(c)).ToArray());
+
+                        //Armazenando 
+                        using (IRepoService repoService = (IRepoService)serviceProvider.GetService<IWebFactoryService>().ServiceSelector("mongodb"))
                         {
-                            repoService.Incluir(resultado.ToString(), qualServico);
+                            string mongoDB_Conexao = configuration.GetConnectionString("MongoDB_Conexao").ToString();
+                            string mongoDB_Database = configuration.GetConnectionString("MongoDB_Database").ToString();
+
+                            repoService.SetConfig(mongoDB_Conexao, mongoDB_Database);
+                            var wtoken = new CancellationTokenSource();
+                            var notificacao = Task.Run(async () =>
+                                {
+                                    while (true)
+                                    {
+                                        {
+                                            repoService.Incluir(resultado.ToString(), String.Concat(qualServico, stripdate));
+                                            await Task.Delay(TimeSpan.FromSeconds(10), wtoken.Token); // <- await with cancellation
+                                        }
+                                    }
+                                }
+                            , wtoken.Token);
+                            notificacao.Wait();
 
                         }
 
@@ -153,6 +172,12 @@ namespace MonitorarSpTrans.Application
             //Log.Information("Uri-Base:" + configuration.GetSection("sptrans").GetValue<string>("urlBase"));
 
 
+            // Task[] tasks = new Task[2]
+            // {
+            //     Task.Factory.StartNew(() => Console.WriteLine("opa")),
+            //     Task.Factory.StartNew(() => Console.WriteLine(DateTime.Now + "Hello from Final"))
+            // };
+            // Task.WaitAll(tasks);
 
         }
 
@@ -189,7 +214,7 @@ namespace MonitorarSpTrans.Application
             });
             serviceCollection.AddSingleton<IWebAuthorization, WebAuthorizationSpTrans>();
             serviceCollection.AddSingleton<IWebFactoryService, WebFactoryService>();
-            serviceCollection.AddSingleton<IRepoService, RepoService>();
+            serviceCollection.AddSingleton<IRepoService, RepoServiceMongoDB>();
 
 
             // Add app

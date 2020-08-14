@@ -1,5 +1,7 @@
 using System;
+using MonitorarSpTrans.Application.IRepository;
 using MonitorarSpTrans.Application.IService;
+using MonitorarSpTrans.Application.Repository;
 
 namespace MonitorarSpTrans.Application.Service
 {
@@ -19,11 +21,12 @@ namespace MonitorarSpTrans.Application.Service
         {
         }
 
-        public IWebService ServiceSelector(string qual)
+        public object ServiceSelector(string qual)
         {
             switch (qual)
             {                
-                case "lerweb": return new WebServiceSpTransEmpresas();
+                case "lerweb": return (IWebService)new WebServiceSpTransEmpresas();
+                case "mongodb": return (IRepoService)new RepoServiceMongoDB();
                 default: return null;
             }
 
